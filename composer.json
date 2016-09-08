@@ -19,9 +19,4 @@
             "Littie\\Geolocation\\": "src/"
         }
     }
-    "autoload": {
-        "psr-4": {
-            "Enchance\\Bleh\\": "src/"
-        }
-    }
 }
