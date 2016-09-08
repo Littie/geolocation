@@ -1,0 +1,14 @@
+{
+    "name": "littie/geolocation",
+    "description": "Work with geolocation google API",
+    "require": {
+        "guzzlehttp/guzzle": "^6.2"
+    },
+    "authors": [
+        {
+            "name": "Littie",
+            "email": "polik.palam@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
