@@ -2,6 +2,7 @@
     "name": "littie/geolocation",
     "description": "Work with geolocation google API",
     "type": "library",
+    "license": "MIT",
     "keywords": ["laravel"],
     "require": {
         "guzzlehttp/guzzle": "^6.2"
@@ -16,6 +17,11 @@
     "autoload": {
         "psr-4": {
             "Littie\\Geolocation\\": "src/"
+        }
+    }
+    "autoload": {
+        "psr-4": {
+            "Enchance\\Bleh\\": "src/"
         }
     }
 }
