@@ -31,10 +31,12 @@ class Geolocation
         $this->fetchData($coordinates, $type);
     }
 
+    /* Get geolocation data */
     public function getGeolocationCoordinates() {
         return $this->getResult()['results'][0]['geometry']['location'];
     }
 
+    /* Get reverse geolocation data */
     public function getReverseCoordinates() {
         $results = [];
 
@@ -48,20 +50,24 @@ class Geolocation
     }
 
     private function getResult() {
-        if (Cache::has($this->coordinates)) {
-            return Cache::get($this->coordinates);
+        $query = self::URI . $this->format . '?' . $this->type . '=' . $this->coordinates . '&' . 'language=' . $this->language . '&' . 'key=' . $this->key;
+        
+        /* Check cache */
+        if (Cache::has($query)) {
+            return Cache::get($query);
         }
 
         $client = new Client();
 
-        $this->response = $client->request($this->method, self::URI . $this->format . '?' . $this->type . '=' . $this->coordinates . '&' . 'language=' . $this->language . '&' . 'key=' . $this->key, ['verify' => $this->verify]);
-
-        Cache::add($this->coordinates, json_decode($this->response->getBody(), true), 1440);
+        $this->response = $client->request($this->method, $query , ['verify' => $this->verify]);
+        
+        /* Set cache */
+        Cache::add($query, json_decode($this->response->getBody(), true), 1440);
 
         return json_decode($this->response->getBody(), true);
     }
 
-
+    /* Fetch all data*/
     private function fetchData($coordinates, $type)
     {
         $this->coordinates = $coordinates;
