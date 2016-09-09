@@ -14,7 +14,7 @@ class GeolocationServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . 'Config/geolocation.php' => config_path('geolocation.php'),
+            __DIR__ . '/Config/geolocation.php' => config_path('geolocation.php'),
         ], 'config');
     }
 
