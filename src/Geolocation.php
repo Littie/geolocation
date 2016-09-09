@@ -5,41 +5,40 @@ namespace Littie\Geolocation;
 
 
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Cache;
+use Mockery\CountValidator\Exception;
 
 class Geolocation
 {
-    //todo: Вынести формат данных в конфиг
-    const URI = 'https://maps.googleapis.com/maps/api/geocode/json?';
+    const URI = 'https://maps.googleapis.com/maps/api/geocode/';
     const GEOLOCATION = 'geolocation';
     const REVERSE_GEOLOCATION = 'reverse';
+    const ADDRESS = 'address';
+    const LATLNG = 'latlng';
 
     private $coordinates;
     private $response;
     private $method;
     private $key;
     private $verify;
+    private $language;
+    private $format;
+    private $type;
 
 
     public function __construct($coordinates, $type)
     {
-        $this->fetchData();
-        $this->coordinates = $coordinates;
-
-        if ($type == self::GEOLOCATION) {
-            $this->response = $this->getGeolocationResponse();
-        } else {
-            $this->response = $this->getReverseResponse();
-        }
+        $this->fetchData($coordinates, $type);
     }
 
     public function getGeolocationCoordinates() {
-        return json_decode($this->response->getBody(), true)['results'][0]['geometry']['location'];
+        return $this->getResult()['results'][0]['geometry']['location'];
     }
 
     public function getReverseCoordinates() {
         $results = [];
 
-        $data = json_decode($this->response->getBody(), true)['results'];
+        $data = $this->getResult()['results'];
 
         foreach ($data as $item) {
             $results[] = $item['formatted_address'];
@@ -48,29 +47,37 @@ class Geolocation
         return $results;
     }
 
-    private function getReverseResponse()
-    {
+    private function getResult() {
+        if (Cache::has($this->coordinates)) {
+            return Cache::get($this->coordinates);
+        }
+
         $client = new Client();
 
-        return $client->request($this->method, self::URI . 'latlng=' . $this->coordinates . '&' . 'key=' . $this->key, ['verify' => $this->verify]);
+        $this->response = $client->request($this->method, self::URI . $this->format . '?' . $this->type . '=' . $this->coordinates . '&' . 'language=' . $this->language . '&' . 'key=' . $this->key, ['verify' => $this->verify]);
+
+        Cache::add($this->coordinates, json_decode($this->response->getBody(), true), 1440);
+
+        return json_decode($this->response->getBody(), true);
     }
 
-    private function getGeolocationResponse()
-    {
-        $client = new Client();
 
-        return $client->request($this->method, self::URI . 'address=' . $this->coordinates . '&' . 'key=' . $this->key, ['verify' => $this->verify]);
-    }
-
-    private function fetchData()
+    private function fetchData($coordinates, $type)
     {
+        $this->coordinates = $coordinates;
+
         $this->method = config('geolocation.method');
         $this->key = config('geolocation.key');
         $this->verify = config('geolocation.verify');
-    }
+        $this->language = config('geolocation.language');
+        $this->format = config('geolocation.format');
 
-    public static function saySomething()
-    {
-        return config('geolocation.message');
+        switch ($type) {
+            case self::GEOLOCATION : $this->type = self::ADDRESS;
+                break;
+            case self::REVERSE_GEOLOCATION : $this->type = self::LATLNG;
+                break;
+            default: throw new Exception();
+        }
     }
 }
